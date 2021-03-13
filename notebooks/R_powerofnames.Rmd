@@ -3,11 +3,11 @@ title: "The Power of names()"
 author: "by Kolapo Obajuluwa"
 output: html_notebook
 ---
-## Welcome
+## Hi! What's your name?
 
-This workbook seeks to aid R beginners in understanding how to dive into R objects to find all the gold they need.
+The names function in R is a simple yet powerful function for accessing and even replacing "names" of attributes of vectors and objects.
 
-We'll be working with some air quality data from kaggle, it covers air quality in India from 2015 to 2020. Here's a link to the dataset: https://www.kaggle.com/rohanrao/air-quality-data-in-india
+To illustrate this, we'll be working with some air quality data from kaggle, it covers air quality in India from 2015 to 2020. Here's a link to the dataset: https://www.kaggle.com/rohanrao/air-quality-data-in-india
 
 Downloaded the data? Let's load it.
 
@@ -156,14 +156,14 @@ dev.off()
 
 
 ---
-#![Diurnal Plot for O3, NOx and CO](../plots/diurnplot.jpeg)
+![Diurnal Plot for O3, NOx and CO](../plots/diurnplot.jpeg){width=100%}
 ---
 I may have rushed you at the end there with the print statements but we'll explore stacking plots in  another post.
 
 Thanks for reading!
 
 
-
+mediumr:::medium_create_post_from_Rmd()
 
 
 
