@@ -1,15 +1,15 @@
 ---
 title: "The Power of names()"
-author: "Kolapo Obajuluwa"
+author: "by Kolapo Obajuluwa"
 output: html_notebook
 ---
 ## Welcome
 
 This workbook seeks to aid R beginners in understanding how to dive into R objects to find all the gold they need.
 
-We'll be working with some air quality data I found on kaggle, it covers air quality in India from 2015 to 2020. Here's a link to the dataset: https://www.kaggle.com/rohanrao/air-quality-data-in-india
+We'll be working with some air quality data from kaggle, it covers air quality in India from 2015 to 2020. Here's a link to the dataset: https://www.kaggle.com/rohanrao/air-quality-data-in-india
 
-Downloaded the data? let's load it.
+Downloaded the data? Let's load it.
 
 
 ```{r}
@@ -19,13 +19,13 @@ csvs <- list.files(path = wkdir, pattern = "*.csv")
 
 csvs
 ```
-We want granular data, at least time-wise, so let's go with the hourly data. I'm not focusing on spatial variation now so I'll just load the data by city (city_hour.csv) and have a quick glance at it.
+We want granular data, at least time-wise, so let's go with the hourly data. We're not focusing on spatial variation right now so let's load the data by city (city_hour.csv) and have a quick glance at it.
 
 ```{r}
 testr1 <- read.csv(paste(wkdir,csvs[2],sep =""))
 head(testr1)
 ```
-Let's take a look at the unique cities as we do not need ALL the data for this.
+Now we'll take a look at the unique cities as we do not need ALL the data for this.
 
 
 ```{r}
@@ -36,21 +36,21 @@ Let's filter the data to cover just Mumbai. We'll need the "dplyr" package for t
 library(dplyr)
 mumbai_aq <- filter(testr1, City == "Mumbai" )
 ```
-Let's get a list of it's headers using the names function
+Let's get a list of its headers using the names function
 
 ```{r}
 names(mumbai_aq)
 ```
-This is pretty basic use of names, getting the headers in a dataframe. This simple feature can unlock so much more. Let's go!
+This is pretty basic use of names; getting the headers in a dataframe. This simple feature can unlock so much more. Let's go!
 
-Let's obtain diurnal plots of O3, Nox and CO, they theoretically have a chemical relationship but that isn't in the scope of this post.
+Next, we will generate diurnal plots of O3, Nox and CO, they theoretically have a chemical relationship but that isn't within the scope of this post.
 
-To get these plots, we'll be using an awesome package from David Carslaw called "openair". It's a neat package for air quality analysis. you can install using install.packages("openair") or you can get it directly from his github. I'll load it below since i have it installed already.
+To get these plots, we'll be using an awesome package from David Carslaw called "openair". It's a neat package for air quality analysis. You can install using install.packages("openair") or you can get it directly from his github. I'll load it below since i have it installed already.
 
 ```{r, results='hide'}
 library(openair)
 ```
-To properly analyse time-series data using the openair package, we need to establish a date column of the POSIXct type. let's do this for our DateTime column as it's currently a character column
+To properly analyse time-series data using the openair package, we need to establish a date column of the POSIXct type. So we do this from our DateTime column as it's currently a character column
 
 ```{r}
 mumbai_aq$date <- as.POSIXct(mumbai_aq$Datetime, tz = "GMT", "%Y-%m-%d %H:%M:%S")
@@ -68,17 +68,17 @@ Let's check the variable
 ```{r}
 nox_plt
 ```
-Okay. Our diurnal plot is in the bottom left, "sitting pretty". We want this plot to stand alone as we aim to compare with similar plots for two other pollutants. Documentation for the openair package shows us how to obtain individual plots using the subset function, let's try it.
+Okay. Our diurnal plot is in the bottom left, "sitting pretty". We want this plot to stand alone as we aim to compare with similar plots for two other pollutants. Documentation for the openair package shows us how to obtain individual plots using the subset function, let's try it out.
 
 ```{r}
 plot(nox_plt, subset = "hour")
 ```
-Awesome! Now let' assign it to a variable.
+Awesome! Now let's assign this plot to a variable.
 
 ```{r, fig.show='hide'}
 nox_plt_hr <- plot(nox_plt, subset = "hour")
 ```
-Let's Check the variable
+Checking the variable
 
 ```{r}
 nox_plt_hr
@@ -119,7 +119,7 @@ o3_plt_hr <- o3_plt[["plot"]][["hour"]]
 ```
 ## Editing the Plot Components
 
-These plots are generated for us by the timeVariation function and as such we may not be able to edit its components (labels, axes, limits etc), Or can we?!
+These plots are generated for us by the timeVariation function and as such, we may not be able to edit its components (labels, axes, limits etc), Or can we?!
 
 Let's see if we are able to reference the plot object any further using the names function.
 
@@ -128,7 +128,7 @@ names(nox_plt_hr)
 ```
 Aha! This gives all the components of the plot. Asides from being an accessor function, it's also a replacement function when used with "<-"
 
-Let's see what that means. We'll add titles ("main") to the diurnal plots and also change their y axis labels ("ylab")
+Let's see what that means. We'll add titles ("main") to the diurnal plots and also change their y-axis labels ("ylab")
 
 ```{r}
 nox_plt_hr[["main"]] <- bquote(NO[x]~Diurnal~Plot)
@@ -144,7 +144,7 @@ Awesome!
 Let's export the three plots stacked atop one another.
 
 ```{r, results = 'hide'}
-jpeg(file="diurnplot.jpeg", res=700, width=8000, height=6000, pointsize=10,
+jpeg(file="../plots/diurnplot.jpeg", res=700, width=8000, height=6000, pointsize=10,
      type="windows", antialias="cleartype")
 # 2. Create a plot
 print(o3_plt_hr, position = c(0, 0.67, 1, 1), more = TRUE)
