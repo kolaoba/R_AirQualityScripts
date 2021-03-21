@@ -1,16 +1,21 @@
 ---
 title: "Twitter Word Clouds with R"
 author: "by Kolapo Obajuluwa"
-output: html_notebook
+output: HTML
+always_allow_html: true
 ---
 
 ## A Lazy Approach to Tweet Scraping and Some Mild Stalking - Part 1
+
+![food_word_cloud](../plots/twitterfoodwordcloud2.png)
 
 Last week was super exciting for me after rolling out my first post. I'm grateful for the super positive feedback, especially the encouragement to push out more technical content. Okay, before you scream, I already promised easier-to-read code, so let's proceed.
 
 I was recently messing around with what I could do with my Twitter Developer access for tweet scraping (albeit controlled) and I also recently became fascinated with word clouds.So I decided to marry them into something simple yet useful. 
 
-This article will be a two-part series where the endgame is to build an [R Shiny App](https://shiny.rstudio.com/) for generating word clouds using tweets from any twitter user's timeline. In this part, we'll establish the necessary functions to be used later in the app. 
+This article will be a two-part series where the endgame is to build an [R Shiny App](https://shiny.rstudio.com/) for generating word clouds using tweets from any twitter user's timeline. In this part, we'll establish the necessary functions to be used later in the app.
+
+You can get the full code from [my github](https://github.com/kolaoba/R_AirQualityScripts/tree/main/scripts/Twitter_WordClouds) to follow along.
 
 ## Step 1: Get your Twitter API Access
 
@@ -61,7 +66,7 @@ Lets, take a peak at the food tweets
 
 
 ```{r}
-head(fooood)
+names(fooood)
 ```
 
 Hehe, 90 columns!. This would be rich for some cool analysis but all we want for now is the word cloud so we'll just select the text column and proceed to clean it.
@@ -96,13 +101,12 @@ tdm <- TermDocumentMatrix(tweets.corpus) %>% # create a term document matrix
 
 words <- sort(rowSums(tdm), decreasing = TRUE) # count all occurences of each word and group them
 df <- data.frame(word = names(words), freq = words) # convert it to a dataframe
-head(df) # visulaise!
-
+head(df) # visualise!
 ```
 
 Now that that's done, we can generate our first word cloud!
 
-```{r, fig.align= 'center'}
+```{r, fig.align= 'center',fig.show='hide'}
 set.seed(1234) # for reproducibility, sorta
 wcloud <- wordcloud2(df,   # generate word cloud
                      size = 1,
@@ -110,6 +114,7 @@ wcloud <- wordcloud2(df,   # generate word cloud
                      rotateRatio = 0) #horizontal looks better, but what do you think?
 wcloud
 ```
+![food_word_cloud](../plots/foodwordcloud.png)
 
 Looks good. Now we can put all the steps into a function so we can generate for any of the categories (food, news or richpeople).
 We'll call the function exportWordCloud
@@ -140,6 +145,7 @@ exportWordCloud <- function(tweet_category){
                      color= 'random-dark', # set colors
                      rotateRatio = 0) #horizontal looks better, but what do you think?
   wcloud
+  
 }
 ```
 
@@ -148,13 +154,17 @@ Now we can call it on the other categories
 ```{r, fig.align='center', warning=FALSE}
 exportWordCloud(news)
 ```
+![news_word_cloud](../plots/newswordcloud.png)
 
 ```{r,fig.align='center', warning=FALSE}
 exportWordCloud(richpeople)
 ```
+![richpeople_word_cloud](../plots/richpeoplewordcloud.png)
 
 There's so many customizations available for the word clouds check them out [here](https://cran.r-project.org/web/packages/wordcloud2/vignettes/wordcloud.html#lettercloud-function)
 
 Alrighty, this is enough for today!. Next part, we'll build a simple Shiny App around this with some modifications for more personal stalking.
+
+For a more interactive experience, you can check out this same post on [RPubs](https://rpubs.com/kolaoba/twitterwordclouds) 
 
 ### Thanks for reading and have a great week ahead!

@@ -2,6 +2,7 @@
 title: "The Power of names()"
 author: "by Kolapo Obajuluwa"
 output: html_notebook
+always_allow_html: true
 ---
 ## Hi! What's your name?
 
