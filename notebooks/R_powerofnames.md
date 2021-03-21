@@ -1,12 +1,17 @@
 ## Hi! What’s your name?
 
+![names()](powerofnames.JPG)
+
 The names function in R is a simple yet powerful function for accessing
 and even replacing “names” of attributes of vectors and objects.
 
 To illustrate this, we’ll be working with some air quality data from
 kaggle, it covers air quality in India from 2015 to 2020. Here’s a link
-to the dataset:
-<https://www.kaggle.com/rohanrao/air-quality-data-in-india>
+to the
+[dataset](https://www.kaggle.com/rohanrao/air-quality-data-in-india).
+
+You can get the code for this on [my
+github](https://github.com/kolaoba/R_AirQualityScripts/)
 
 Downloaded the data? Let’s load it.
 
@@ -21,7 +26,7 @@ csvs
     ## [1] "city_day.csv"     "city_hour.csv"    "station_day.csv"  "station_hour.csv" "stations.csv"
 
 We want granular data, at least time-wise, so let’s go with the hourly
-data. We’re not focusing on spatial variation right now so let’s load
+data. We’re not focusing on spatial variation right now so we’ll load
 the data by city (city_hour.csv) and have a quick glance at it.
 
 ``` r
@@ -80,14 +85,15 @@ names(mumbai_aq)
 This is pretty basic use of names; getting the headers in a dataframe.
 This simple feature can unlock so much more. Let’s go!
 
-Next, we will generate diurnal plots of O3, Nox and CO, they
-theoretically have a chemical relationship but that isn’t within the
-scope of this post.
+Next, we will generate diurnal plots of O<sub>3</sub>, No<sub>x</sub>
+and CO, they theoretically have a chemical relationship and comparing
+these plots will help us verify that.
 
 To get these plots, we’ll be using an awesome package from David Carslaw
 called “openair”. It’s a neat package for air quality analysis. You can
 install using install.packages(“openair”) or you can get it directly
-from his github. I’ll load it below since i have it installed already.
+from his [github](https://davidcarslaw.github.io/openair/). I’ll load it
+below since i have it installed already.
 
 ``` r
 library(openair)
@@ -141,8 +147,10 @@ nox_plt
 ![](R_powerofnames_files/figure-markdown_github/unnamed-chunk-9-1.png)
 Okay. Our diurnal plot is in the bottom left, “sitting pretty”. We want
 this plot to stand alone as we aim to compare with similar plots for two
-other pollutants. Documentation for the openair package shows us how to
-obtain individual plots using the subset function, let’s try it out.
+other pollutants.
+[Documentation](https://davidcarslaw.github.io/openair/reference/timeVariation.html)
+for the openair package shows us how to obtain individual plots using
+the subset function, let’s try it out.
 
 ``` r
 plot(nox_plt, subset = "hour")
@@ -276,7 +284,25 @@ dev.off()
 |--------------------------------------------------------------------------------------------------|
 | <img src="../plots/diurnplot.jpeg" style="width:100.0%" alt="Diurnal Plot for O3, NOx and CO" /> |
 
-I may have rushed you at the end there with the print statements but
-we’ll explore stacking plots in another post.
+From this comparison, we can see the depletion of CO and NO<sub>x</sub>
+to generate the secondary pollutant O<sub>3</sub> at relatively higher
+temperatures (when the sun is up at noon) in the day.
 
-Thanks for reading!
+I may have rushed you at the end there with the print statements and
+“bquote” but we’ll explore stacking plots and parsing text in another
+post.
+
+## TL;DR
+
+From basic understanding of the variables present in your dataset, to
+the ability to replace core properties of rather complex objects, the
+names() function is a stronger tool in your toolbox than you might
+think.
+
+### Thanks for reading!
+
+Please like, share and follow to spread the good woRd. Also don’t forget
+to leave a comment, I’d love for some feedback to improve on my writing
+and code.
+
+### Happy Sunday!

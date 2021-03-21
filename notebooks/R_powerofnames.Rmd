@@ -5,9 +5,13 @@ output: html_notebook
 ---
 ## Hi! What's your name?
 
+![names()](powerofnames.JPG)
+
 The names function in R is a simple yet powerful function for accessing and even replacing "names" of attributes of vectors and objects.
 
-To illustrate this, we'll be working with some air quality data from kaggle, it covers air quality in India from 2015 to 2020. Here's a link to the dataset: https://www.kaggle.com/rohanrao/air-quality-data-in-india
+To illustrate this, we'll be working with some air quality data from kaggle, it covers air quality in India from 2015 to 2020. Here's a link to the [dataset](https://www.kaggle.com/rohanrao/air-quality-data-in-india).
+
+You can get the code for this on [my github](https://github.com/kolaoba/R_AirQualityScripts/) 
 
 Downloaded the data? Let's load it.
 
@@ -19,7 +23,7 @@ csvs <- list.files(path = wkdir, pattern = "*.csv")
 
 csvs
 ```
-We want granular data, at least time-wise, so let's go with the hourly data. We're not focusing on spatial variation right now so let's load the data by city (city_hour.csv) and have a quick glance at it.
+We want granular data, at least time-wise, so let's go with the hourly data. We're not focusing on spatial variation right now so we'll load the data by city (city_hour.csv) and have a quick glance at it.
 
 ```{r}
 testr1 <- read.csv(paste(wkdir,csvs[2],sep =""))
@@ -43,9 +47,9 @@ names(mumbai_aq)
 ```
 This is pretty basic use of names; getting the headers in a dataframe. This simple feature can unlock so much more. Let's go!
 
-Next, we will generate diurnal plots of O3, Nox and CO, they theoretically have a chemical relationship but that isn't within the scope of this post.
+Next, we will generate diurnal plots of O~3~, No~x~ and CO, they theoretically have a chemical relationship and comparing these plots will help us verify that.
 
-To get these plots, we'll be using an awesome package from David Carslaw called "openair". It's a neat package for air quality analysis. You can install using install.packages("openair") or you can get it directly from his github. I'll load it below since i have it installed already.
+To get these plots, we'll be using an awesome package from David Carslaw called "openair". It's a neat package for air quality analysis. You can install using install.packages("openair") or you can get it directly from his [github](https://davidcarslaw.github.io/openair/). I'll load it below since i have it installed already.
 
 ```{r, results='hide'}
 library(openair)
@@ -60,7 +64,7 @@ For the diurnal plots, we'll be using the timeVariation function in the openair 
 
 Let's plot for Nox
 
-```{r}
+```{r, results='hide'}
 nox_plt <- timeVariation(mumbai_aq, pollutant = 'NOx')
 ```
 Let's check the variable
@@ -68,7 +72,7 @@ Let's check the variable
 ```{r}
 nox_plt
 ```
-Okay. Our diurnal plot is in the bottom left, "sitting pretty". We want this plot to stand alone as we aim to compare with similar plots for two other pollutants. Documentation for the openair package shows us how to obtain individual plots using the subset function, let's try it out.
+Okay. Our diurnal plot is in the bottom left, "sitting pretty". We want this plot to stand alone as we aim to compare with similar plots for two other pollutants. [Documentation](https://davidcarslaw.github.io/openair/reference/timeVariation.html) for the openair package shows us how to obtain individual plots using the subset function, let's try it out.
 
 ```{r}
 plot(nox_plt, subset = "hour")
@@ -110,7 +114,7 @@ nox_plt_hr
 ```
 Awesome! so our plot is stored and we can replicate this for our other pollutants.
 
-```{r, fig.show='hide'}
+```{r, results='hide',fig.show='hide'}
 co_plt <- timeVariation(mumbai_aq, pollutant = 'CO')
 co_plt_hr <- co_plt[["plot"]][["hour"]]
 
@@ -158,12 +162,26 @@ dev.off()
 ---
 ![Diurnal Plot for O3, NOx and CO](../plots/diurnplot.jpeg){width=100%}
 ---
-I may have rushed you at the end there with the print statements but we'll explore stacking plots in  another post.
+From this comparison, we can see the depletion of CO and NO~x~ to generate the secondary pollutant O~3~ at relatively higher temperatures (when the sun is up at noon) in the day.
 
-Thanks for reading!
+I may have rushed you at the end there with the print statements and "bquote" but we'll explore stacking plots and parsing text in another post.
 
 
-mediumr:::medium_create_post_from_Rmd()
+## TL;DR
+From basic understanding of the variables present in your dataset, to the ability to replace core properties of rather complex objects, the names() function is a stronger tool in your toolbox than you might think. 
+
+### Thanks for reading!
+
+Please like, share and follow to spread the good woRd.
+Also don't forget to leave a comment, I'd love some feedback to improve on my writing and code.
+
+### Have a great one!
+
+
+
+
+
+
 
 
 
