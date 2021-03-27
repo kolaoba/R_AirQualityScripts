@@ -31,7 +31,7 @@ access_secret = keys$access_secret)
 
 exportWordCloud <- function(twitter_handle){
     twitter_handle_str <- toString(twitter_handle)
-    tweets_df <- get_timelines(c(twitter_handle_str), n= 1000, home=FALSE)
+    tweets_df <<- get_timelines(c(twitter_handle_str), n= 1000, home=FALSE)
     tweets <- tweets_df
     tweets <- tweets %>% select("text") # selects just the text column
     
