@@ -1,0 +1,13 @@
+name: TwitterWordCloud
+title: TwitterWordCloud
+username:
+account: kolaoba
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3872018
+bundleId: 4401904
+url: https://kolaoba.shinyapps.io/TwitterWordCloud/
+when: 1616867850.72445
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: t.png

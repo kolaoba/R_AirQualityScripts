@@ -56,6 +56,4 @@ exportWordCloud <- function(tweet_category){
 exportWordCloud(fooood)
 exportWordCloud(richpeople)
 exportWordCloud(news)
-exportWordCloud(japamotivation)
 
-fonts()
