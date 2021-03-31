@@ -1,7 +1,6 @@
 
 
 
-
 library(shiny)
 # for some cool themes!!
 # install.packages("shinythemes")
@@ -27,6 +26,9 @@ consumer_secret = keys$consumer_secret,
 access_token = keys$access_token,
 access_secret = keys$access_secret)
 
+#gsub function for removing twitter username
+
+
 #define exportwordcloud function------------------------------------------------
 
 exportWordCloud <- function(twitter_handle){
@@ -34,8 +36,8 @@ exportWordCloud <- function(twitter_handle){
     tweets_df <<- get_timelines(c(twitter_handle_str), n= 1000, home=FALSE)
     tweets <- tweets_df
     tweets <- tweets %>% select("text") # selects just the text column
-    
-    tweets$text <- gsub("[^[:alnum:][:blank:]?&/\\-]", "",tweets$text) # remove alphanumeric characters 
+    # tweets$text <- gsub("(^|[^@\\w])@(\\w{1,15})\\b", "",tweets$text) # remove witter usernames!!    
+    tweets$text <- gsub("[^[:alnum:][:blank:]?&/\\-]", "",tweets$text) # remove non alphanumeric characters 
     tweets$text <- gsub("https\\S*", "",tweets$text) # remove hyperlinks
     tweets$text <- gsub("amp", "",tweets$text) # amp just keeps showing up, remove it!!
     
@@ -45,6 +47,7 @@ exportWordCloud <- function(twitter_handle){
     
     tweets.corpus <- tweets.corpus %>%
         tm_map(removeNumbers) %>% # removes numbers from text
+        tm_map(content_transformer(function(x) gsub("dont", "", x))) %>% # remove dont, just keeps showing up!!
         tm_map(removePunctuation) %>% # removes punctuation from text
         tm_map(stripWhitespace) %>% # trims the text of whitespace
         tm_map(content_transformer(tolower)) %>% # convert text to lowercase
@@ -59,6 +62,7 @@ exportWordCloud <- function(twitter_handle){
     set.seed(1234) # for reproducibility, sorta
     wcloud <- wordcloud2(df,   # generate word cloud
                          size = 1,
+                         minSize = 0.5,
                          color= 'random-dark', # set colors
                          rotateRatio = 0
                          ) #horizontal looks better, but what do you think?
@@ -72,7 +76,7 @@ ui <- fluidPage(
 
     theme = shinytheme("superhero"),
     # Give the page a title
-    titlePanel("Twitter Word Cloud Generator"),
+    titlePanel("Kolapo Obajuluwa's Twitter Word Cloud Generator"),
     
     # Generate a row with a sidebar
     sidebarLayout(      
@@ -103,7 +107,17 @@ server <- function(input, output) {
     
     output$wordCloud <- renderWordcloud2({
         input$update
-        isolate(exportWordCloud(input$twitter_handle))
+        isolate(
+            # exportWordCloud(input$twitter_handle)
+           b <<- tryCatch({
+                
+                exportWordCloud(input$twitter_handle)
+                
+            }, error = function(e){
+                exportWordCloud("@coldstoneng")
+                
+            }) 
+            )
     })
 }
 
