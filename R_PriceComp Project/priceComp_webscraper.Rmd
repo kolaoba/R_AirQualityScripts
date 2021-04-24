@@ -1,0 +1,235 @@
+---
+title: "WebScraping in R - (Lazy Version)"
+author: "by Kolapo Obajuluwa"
+date: "4/24/2021"
+output: html_document
+---
+
+## How I Scraped Jumia, Konga and Jiji for Price Comparison
+
+Hi! How's it going? I'm well too, thanks for asking! It's been two weeks since my last post, why? Let's just thank God for love and life.
+
+This week, I decided to finally stop procrastinating on my quest to learn web scraping using R. An hour into my research (essentially looking for the minimal-effort-maximum-output way to properly scrape some useful data), I discovered something I'm super excited to share with everyone! I'll be sharing the easiest possible ways (I have come up with thus far) to scrape data from Jumia, Konga and Jiji for price comparison. 
+
+First of all, the star of this show is [Dr Mohamed El Fodil Ihaddaden](https://www.linkedin.com/in/mohamed-el-fodil-ihaddaden-ph-d-730796159/) who built a really neat R package called 'ralger' along with [Ezekiel Ogundepo](https://www.linkedin.com/in/ezekiel-ogundepo/?originalSubdomain=ng) and [Romain François](https://www.linkedin.com/in/romain-francois/). Please check them out on linkedIn and help me thank them. The package they've built (which is built on rvest) saves our eyes and fingers from using rvest directly to scrape web data. If you're familiar with the typical piping of functions required when using the rvest functions, you'll understand as we go along.
+
+### Justification for Spending my Saturday on this
+
+A couple of months ago, I set out to buy a Yamaha PSR keyboard and boy was it tedious! I was constantly switching between Konga, Jumia and jiji to compare prices of these keyboards across the sites for the lowest price for the highest value I could get. If only I had used these scraping techniques, it would have saved me a lot of stress! Hopefully, with this knowledge, you can make your next purchase with much less stress than I did.
+
+As a precursor to following the code, I recommend you watch Dr Mohamed's [5-minute Youtube Video](https://www.youtube.com/watch?v=OHi6E8jegQg) where he explains different use-cases for his package.
+You can also follow along using my R script which is available on [my github]().
+
+## Scraping Jumia Data
+
+Jumia was easy (bless their souls!), in four lines of code, I was able to scrape 5 pages of "Yamaha Piano Keyboard" data (names and prices).
+
+All I had to do was supply the URL to be scraped, the css classes of the data I wanted to scrape (in this case, names and prices) and the output column names.
+
+Here's the code I used:
+
+```{r, warning=FALSE}
+# loading relevant libraries
+library(pacman) # neat package for multi-package installation and loading
+p_load(tidyverse, ralger, glue, RSelenium, magrittr, DT)
+
+n_pages <- 5 # number of pages to be scraped
+
+# Jumia ------------------------------------------------------------------------
+
+jumia_link <-  glue("https://www.jumia.com.ng/catalog/?q=yamaha+piano+keyboard&page={seq(1,n_pages)}")
+
+jumia_nodes <- c(".name" , ".prc")
+jumia_names <- c("name", "price")
+
+jumia_data <- tidy_scrap(jumia_link, jumia_nodes, jumia_names)
+
+```
+
+And that's it. The glue function coupled with tidy_scrap's in-built looping functionality let me conquer pageination on the Jumia site and scrape 5 pages easily.
+I added two extra columns "condition" which is always "New" for Jumia and a "source" column with "jumia" which indicates where the data came from.
+
+## Scraping Konga Data
+
+Konga was a little tricky as it was built using React.js, as such, I needed to perform "headless navigation".
+
+Cue, RSelenium.
+
+This package lets you use the Selenium WebDriver APIs with R. Essentially, with it, you can open a web browser, navigate to any URL you please, perform actions like a user would on a browser and close the browser, all without leaving your IDE. Hence, headless navigation.
+
+For Konga, you'd technically have to navigate to each page to read the html hence the need for RSelenium.
+
+Here's the code I used:
+
+```{r, results='hide', warning=FALSE}
+# Konga ------------------------------------------------------------------------
+# starts a chrome browser
+rD <-
+  rsDriver(
+    port = 4445L,
+    browser = "chrome",
+    chromever = "90.0.4430.24",
+    verbose = FALSE
+  )
+
+remDr <- rD$client
+
+konga_link <-
+  glue("https://www.konga.com/search?search=yamaha%20keyboard&page={seq(1,n_pages)}")
+
+konga_list <- list()
+
+for (i in seq(1, length(konga_link))) {
+  remDr$navigate(konga_link[i]) # navigates to site
+  
+  konga_src <-
+    remDr$getPageSource()[[1]] # obtains html page as source
+  
+  konga_nodes <-
+    c(".af885_1iPzH", ".d7c0f_sJAqi") # note that these may change, use selectortool to verify.
+  
+  konga_names <- c("name", "price")
+  
+  konga_datav1 <- tidy_scrap(konga_src, konga_nodes, konga_names)
+  
+  konga_list[[i]] <- konga_datav1 # saves data in a list
+}
+konga_data <-
+  do.call("bind_rows", konga_list) # binds list content into one dataframe
+```
+
+After instantiating the browser session using the rsDriver function, I looped over each page, got the data I needed and stored it to an empty list.
+Once that was done, I appended the rows together from each page to get one dataframe for all 5 pages.
+
+I also added the "condition" and "source" columns as I did for Jumia.
+
+## Scraping jiji Data
+
+Last but certainly not least, there was Jiji. Jiji was not built using React.js BUT it has infinite scrolling. This was tricky to navigate as the full page doesn't load on entry, the further down you scroll, the more content is loaded.
+
+So I came up with a trick to work around this. I didn't get the page URL until I had "scrolled" sufficiently down the page. This was done by writing a quick function to scroll down to the end of the page, then go a nudge up to initialise loading new content below. This function was then replicated n times using the replicate function (go figure!).
+
+```{r, results='hide'}
+# Jiji -------------------------------------------------------------------------
+
+jiji_link <- "https://jiji.ng/search?query=yamaha%20psr"
+
+remDr$navigate(jiji_link)
+
+webElem <- remDr$findElement("css", "body")
+
+jijiScroll <- function() {
+  webElem$sendKeysToElement(list(key = "end"))
+  webElem$sendKeysToElement(list(key = "up_arrow"))
+  webElem$sendKeysToElement(list(key = "end"))
+  Sys.sleep(0.5)
+}
+
+replicate(n_pages, jijiScroll())
+
+jiji_src <- remDr$getPageSource()[[1]]
+
+
+jiji_nodes <-
+  c(".b-advert-title-inner--h3",
+    ".qa-advert-price",
+    ".b-list-advert__item-attr")
+
+jiji_names <- c("name", "price", "condition")
+
+jiji_datav1 <- tidy_scrap(jiji_src, jiji_nodes, jiji_names)
+
+# end selenium session by killing port use
+pid <- rD$server$process$get_pid()
+system(paste0("Taskkill /F /T" , " /PID ", pid))
+```
+
+```{r, echo=FALSE, results='hide', include=FALSE}
+#, results='hide', include=FALSE
+jumia_data$condition <- "Brand New"
+jumia_data$source <- "Jumia"
+
+konga_data$condition <- "Brand New"
+konga_data$source <- "Konga"
+
+jiji_datav1$source <- "jiji"
+
+jiji_data <- jiji_datav1
+
+whitespace <- "\\s+"
+
+jiji_data_strip <-  as.data.frame(lapply(jiji_data, function(x) gsub(whitespace, " ", x)))
+
+combined_data <- rbind(jumia_data,konga_data,jiji_data_strip)
+
+combined_data$condition <- ifelse(grepl("New", combined_data$condition), "New",combined_data$condition)
+
+combined_data %<>% 
+  mutate(condition = factor(condition), source = factor(source),price = as.numeric(gsub("₦|,","",price))) 
+
+```
+
+
+After this, it was business as usual, sourced the page, did a tidy_scrap and I got my data. What was left was some cleaning to remove whitespace from the jiji data and I was able to append it to the Jumia and Konga data for one comprehensive database of prices for my beloved yamaha psr keyboards.
+
+Here's a table with the final output. It's html-interactive but not on Medium, to interact with the table where you can filter by source, condition and price, you want to check out [this same post on Rpubs](https://rpubs.com/kolaoba/webscraping-in-R)
+
+```{r, echo=FALSE}
+combined_data <- read.csv("C:/Projects/R Projects/R_Projects/R_PriceComp Project/combined_data.csv")
+DT::datatable(combined_data, filter = "top")
+```
+
+
+All done! I was going for short yet impactful, how did I do?
+
+Hopefully, you can scrape whatever data you want from these sites for yourself by changing the URLs in my script.
+
+If you're wondering what I went for, it was a new Yamaha PSR E373 off of jiji.
+
+Till next time! Stay learning!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

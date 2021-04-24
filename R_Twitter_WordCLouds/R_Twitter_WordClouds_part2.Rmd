@@ -23,6 +23,8 @@ Glad you asked! A quick google search for the [official shiny homepage link](htt
 
 It basically means I can code up all my "magic in R and present a non-coding end user with an easy-to-use interactive interface for viewing my analysis.
 
+In the spirit of this, there is not one single line of code in this article.
+
 The official website offers many ways to learn how to build them, check them out [here](https://shiny.rstudio.com/)
 
 
@@ -33,9 +35,9 @@ So I took last week's exportWordCloud function, tweaked it a little, fed it into
 With this app, you can look up any twitter user's handle to generate a word cloud of their last 1000 tweets.
 Gives you an idea of what they've been talking about, hehehe.
 
-It's really easy to build and I'll the code on my [github](https://github.com/kolaoba/R_Projects/tree/main/apps/TwitterWordCloud) in case you want to reproduce for yourself. Get your twitter API access first!
+It's really easy to build and I'll leave the code in my [github](https://github.com/kolaoba/R_Projects/tree/main/apps/TwitterWordCloud) in case you want to reproduce for yourself. Get your twitter API access first!
 
-Please check out the app here. Its default page is the coldstone word cloud (because, why not?) but you can look up your crush too.
+Please check out the [app](https://kolaoba.shinyapps.io/TwitterWordCloud/) here. Its default page is the coldstone word cloud (because, why not?) but you can look up your crush too.
 
 
 It's pretty simple for now as I literally just looked up how to build it this morning, but in subsequent posts, I could add much more functionality and make it even cooler!
@@ -46,6 +48,9 @@ Next week, I'm hosting a wedding ceremony for R and Python in my RStudio and you
 Have a restful weekend ahead!
 
 I leave you with the following words from looking up @cowrywise with my app. When you see it.
+
+Here's a link to the app: https://kolaoba.shinyapps.io/TwitterWordCloud/
+
 ![send_money](../plots/send_money.png)
 
 
