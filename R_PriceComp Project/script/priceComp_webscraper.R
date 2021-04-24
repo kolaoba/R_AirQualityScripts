@@ -97,7 +97,11 @@ combined_data %<>%
 
 # write.csv(combined_data, "combined_data.csv", row.names = FALSE)
 
-combined_data %<>% group_by(source) %>% 
+# combined_data.csv <- read.csv("C:/Projects/R Projects/R_Projects/R_PriceComp Project/combined_data.csv")
+
+combined_data.csv <- combined_data
+
+combined_data <- combined_data.csv %>% group_by(source) %>% 
   summarise(count = n()) 
 
 
@@ -132,7 +136,7 @@ ggplotly(ggplot(combined_data) +
 
 
 
-e373_data <- combined_data %>% filter(price >= 80000 & price <= 200000 & grepl("E373", name))
+e373_data <- combined_data.csv %>% filter(price >= 80000 & price <= 200000 & grepl("E373", name))
 
 ggplotly(ggplot(e373_data) +
   aes(x = name, fill = source, y = price) +
