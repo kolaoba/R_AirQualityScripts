@@ -1,8 +1,7 @@
 
-
 # install.packages('pacman')
 library(pacman)
-p_load(tidyverse, ralger, glue, RSelenium, magrittr, DT)
+p_load(tidyverse, ralger, glue, RSelenium, magrittr, DT, plotly)
 
 n_pages <- 5
 
@@ -34,7 +33,6 @@ konga_list <- list()
 for (i in seq(1,length(konga_link))){
   
   remDr$navigate(konga_link[i])
-  Sys.sleep(3)
   src <- remDr$getPageSource()[[1]]
   
   konga_nodes <- c(".af885_1iPzH", ".d7c0f_sJAqi")
@@ -95,14 +93,74 @@ combined_data <- rbind(jumia_data,konga_data,jiji_data_strip)
 combined_data$condition <- ifelse(grepl("New", combined_data$condition), "New",combined_data$condition)
 
 combined_data %<>% 
-  mutate(condition = factor(condition), source = factor(source),price = as.numeric(gsub("₦|,","",price))) 
+  mutate(condition = factor(condition), source = factor(source),price = as.numeric(gsub("\\D","",price))) 
+
+# write.csv(combined_data, "combined_data.csv", row.names = FALSE)
+
+combined_data %<>% group_by(source) %>% 
+  summarise(count = n()) 
+
+
+ggplotly(ggplot(combined_data) +
+  aes(x = source, y = count, fill = source) +
+  geom_bar(stat = 'identity') +
+  scale_fill_manual(
+    values = list(
+      jiji = "#3DB83B",
+      Jumia = "#F68C1E",
+      Konga = "#ED017F"
+    ) 
+    )+
+  labs(x = "Source", y = "Count of Items") +
+  theme_bw() +
+    theme(
+      legend.position = "top",
+      axis.title.y = element_text(
+        size = 10L,
+        face = "bold"
+      ),
+      axis.text.x=element_text(
+        # size = 10L,
+        face = "bold"
+      ),
+      axis.ticks.x=element_blank()
+    )
+  )
+
+
+
+
+
+
+e373_data <- combined_data %>% filter(price >= 80000 & price <= 200000 & grepl("E373", name))
+
+ggplotly(ggplot(e373_data) +
+  aes(x = name, fill = source, y = price) +
+  geom_bar(stat = 'identity') +
+  scale_fill_manual(
+    values = list(
+      jiji = "#3DB83B",
+      Jumia = "#F68C1E",
+      Konga = "#ED017F"
+    )
+  ) +
+  labs(x = "Yamaha PSR E373", y = "Price (₦)") +
+  theme_minimal() +
+  theme(
+    legend.position = "top",
+    axis.title.y = element_text(
+      size = 10L,
+      face = "bold"
+    ),
+    axis.title.x=element_text(
+      size = 10L,
+      face = "bold"
+    ),
+    axis.text.x=element_blank(),
+    axis.ticks.x=element_blank()
+  ))
+
 
 DT::datatable(combined_data, filter = "top")
-
-
-
-
-
-
 
 
