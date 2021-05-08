@@ -1,0 +1,265 @@
+---
+title: "Shopify 2021 Data Science Intern Challenge"
+author: "Kolapo Obajuluwa"
+date: "5/8/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem Statement:
+
+Question 1 : On Shopify, we have exactly 100 sneaker shops, and each of these shops sells only one model of shoe. We want to do some analysis of the average order value (AOV). When we look at orders data over a 30 day window, we naively calculate an AOV of $3145.13. Given that we know these shops are selling sneakers, a relatively affordable item, something seems wrong with our analysis. 
+
+
+a.	Think about what could be going wrong with our calculation. Think about a better way to evaluate this data. 
+b.	What metric would you report for this dataset?
+c.	What is its value?
+
+Dataset is available [here](https://docs.google.com/spreadsheets/d/16i38oonuX1y1g7C_UAmiK9GkY7cS-64DfiDMNiR41LM/edit#gid=0)
+
+## My Response:
+
+Importing the dataset and exploring a little.
+
+```{r, include=FALSE}
+library(pacman)
+p_load(readxl, tidyverse, lubridate, plotly)
+
+impdir <- 'C:/Users/koli0/Downloads/2019 Winter Data Science Intern Challenge Data Set.xlsx'
+
+
+data.csv <- read_xlsx(impdir)
+
+
+
+data <- data.csv %>% 
+  mutate_at(vars(matches("id"),"payment_method"), factor)  # factorizes the id columns and "payment_method" column
+```
+
+Quick look at the dataset by summarizing our data
+
+```{r}
+data %>% 
+  summary
+```
+
+Zooming in on the order_amount column
+
+```{r}
+summary(data$order_amount)
+```
+
+It appears the naive calculation is obtained by averaging all of the order_amount data.
+
+Question 1a: Think about what could be going wrong with our calculation. Think about a better way to evaluate this data.
+
+Response: This calculation tries to evaluate the AOV across all 100 shops over the 30 day window. This results in the high $3145.13 value. 
+
+According to [this definition](https://www.shopify.com.ng/blog/average-order-value#averageorder), to obtain the AOV, we divide the total revenue by the total number of orders. Doing this for each shop and getting the average, we have 
+
+```{r}
+aov_v1 <- data %>% 
+  group_by(shop_id) %>% 
+  summarise(total_revenue = sum(order_amount),
+            total_orders = sum(total_items)) %>% 
+  transmute(aov_v1 = total_revenue/total_orders) %>% 
+  ungroup() %>% 
+  summarise(average_ov = mean(aov_v1))
+aov_v1
+```
+
+An AOV of $407.99 sounds much more realistic but it's still on the high side for affordable sneakers, let's explore further. 
+
+I'd like to calculate the sneaker price for each shop to see what that looks like. This is straightforward as each store sells only one model of sneakers. A simple division of the revenue per store and the number of items (shoes) sold will yield this. Coincidentally, this also fits the definition for the AOV, so running the two following chunks, yield the same results and the sneaker price per shop is same as the AOV per shop.
+
+Getting the sneaker price per shop
+```{r}
+data %>% 
+  group_by(shop_id) %>% 
+  mutate(sneaker_price = order_amount/total_items) %>%
+  summarise(sneaker_price = mean(sneaker_price)) %>% 
+  select(shop_id, sneaker_price) %>% 
+  arrange(desc(sneaker_price))
+```
+
+Getting the AOV per shop
+```{r}
+aov_per_shop <- data %>% 
+  group_by(shop_id) %>% 
+  summarise(total_revenue = sum(order_amount),
+            total_orders = sum(total_items)) %>% 
+  transmute(shop_id = shop_id,
+            aov_per_shop = total_revenue/total_orders) %>% 
+  arrange(desc(aov_per_shop))
+
+aov_per_shop
+```
+
+Let's visualise the aov_per_shop.
+
+PLotting this would be devastating. Nevertheless, I make an attempt!
+
+```{r}
+ggplot(aov_per_shop) +
+  aes(x = "", y = aov_per_shop) +
+  geom_boxplot(shape = "circle") +
+  coord_trans(y = "log10") +
+  scale_y_continuous(breaks=c(50,100, 150, 200, 350, 500, 20000)) +
+  ylab("AOV per shop") +
+  xlab("") +
+  theme_bw()
+```
+
+The outlier at $25,725 makes this mostly unreadable despite my logarithmic efforts so let's just look at the numbers!
+
+```{r}
+summary(aov_per_shop$aov_per_shop)
+```
+
+Given that the 3rd Quantile is just \$168.2 and the maximum AOV is \$25725, we have to ask, what is going on in shop 78??.
+
+According to this, Shop 78 sells their sneakers at $25725 a pair! (They must be really fly).
+
+## Summary
+
+Our primary aim is to analyse the AOV for our shops. Given that each shop sells just one model of sneakers, we are essentially trying to determine our average sneaker price.
+
+Shop 78 has a sneaker price of $25,725 which is rather disturbing and needs to be checked. In order not to disrupt our analysis (if we're adamant on using the **average** sneaker price) then we should not include this shop's price in our calculations. As such, our AOV would be obtained as follows.
+
+```{r}
+aov_v2 <-  data %>% 
+  group_by(shop_id) %>% 
+  filter(shop_id != 78) %>% 
+  summarise(total_revenue = sum(order_amount),
+            total_orders = sum(total_items)) %>% 
+  transmute(shop_id = shop_id,
+            aov_per_shop = total_revenue/total_orders) %>% 
+  arrange(desc(aov_per_shop)) %>% 
+  ungroup() %>% 
+  summarise(aov_v2 = mean(aov_per_shop))
+aov_v2
+```
+
+As it's against data best practices to delete data, we'll explore other methods.
+
+### Median Order Value
+
+Another method would be to use the median instead, this is more robust and helps dampen the effect of outliers on the Order Values. This is implemented as follows
+
+```{r}
+aov_v3 <-  data %>% 
+  group_by(shop_id) %>% 
+  summarise(total_revenue = sum(order_amount),
+            total_orders = sum(total_items)) %>% 
+  transmute(shop_id = shop_id,
+            aov_per_shop = total_revenue/total_orders) %>% 
+  arrange(desc(aov_per_shop)) %>% 
+  ungroup() %>% 
+  summarise(aov_v3 = median(aov_per_shop))
+aov_v3
+```
+
+### Modal Order Value
+
+One more method would  be to find the modal sneaker price (most occuring). As R does not have an inbuilt mode function, we write a quick one to obtain this for us.
+
+```{r}
+getmode <- function(x) {
+   uniqx <- unique(x)
+   uniqx[which.max(tabulate(match(x, uniqx)))]
+}
+
+aov_all <-  data %>% 
+  group_by(shop_id) %>% 
+  summarise(total_revenue = sum(order_amount),
+            total_orders = sum(total_items)) %>% 
+  transmute(shop_id = shop_id,
+            aov_per_shop = total_revenue/total_orders) %>% 
+  arrange(desc(aov_per_shop)) %>% 
+  ungroup() %>% 
+  summarise(median_ov = median(aov_per_shop),
+            mode_ov = getmode(aov_per_shop))
+aov_all
+
+```
+
+
+
+Question 1b: What metric would you report for this dataset?
+
+I would report the **modal order value** (sneaker prices) as this is safer than the omission method and reduces the effect of outliers. Hence it gives a more accurate description of the value of each order across all 100 shops.
+
+Question 1c: What is its value?
+
+Its value is **$153**.
+
+## Problem Statement:
+
+Question 2 : For this question you’ll need to use SQL. [Follow this link](https://www.w3schools.com/SQL/TRYSQL.ASP?FILENAME=TRYSQL_SELECT_ALL) to access the data set required for the challenge. Please use queries to answer the following questions. Paste your queries along with your final numerical answers below.
+
+
+a.	How many orders were shipped by Speedy Express in total?
+b.	What is the last name of the employee with the most orders?
+c.	What product was ordered the most by customers in Germany?
+
+
+Response
+
+Question 2a: How many orders were shipped by Speedy Express in total?
+
+In total, **54** Orders were shipped by Speedy Express.
+
+```{sql eval=FALSE, include=TRUE}
+/* solution 1*/
+SELECT 
+COUNT(ShipperID)
+FROM Orders
+WHERE ShipperID == 1;
+
+/*Solution 2 */
+
+SELECT COUNT(o.ShipperID)
+FROM Orders AS o
+WHERE (SELECT ShipperID 
+    FROM Shippers AS s
+    WHERE s.ShipperName == "Speedy Express") == o.ShipperID;
+```
+
+Question 2b: What is the last name of the employee with the most orders?
+
+Last name is **Peacock**.
+
+```{sql eval=FALSE, include=TRUE}
+SELECT e.LastName
+FROM Employees AS e
+WHERE (SELECT o.EmployeeID, COUNT(o.EmployeeID)
+FROM Orders AS o
+GROUP BY o.EmployeeID
+ORDER BY COUNT(o.EmployeeID) DESC
+LIMIT 1) == e.EmployeeID;
+```
+
+Question 2c: What product was ordered the most by customers in Germany?
+
+**Boston Crab Meat** was most ordered by Germany-based customers with a total of 160 orders.
+
+```{sql eval=FALSE, include=TRUE}
+SELECT p.ProductName, SUM(Quantity) AS TotalQuantity
+FROM Orders AS o, OrderDetails AS od, Customers AS c, Products AS p
+WHERE c.Country = "Germany" AND od.OrderID = o.OrderID AND od.ProductID = p.ProductID AND c.CustomerID = o.CustomerID
+GROUP BY p.ProductID
+ORDER BY TotalQuantity DESC
+LIMIT 1;
+```
+
+
+
+
+
+
+
+
+
