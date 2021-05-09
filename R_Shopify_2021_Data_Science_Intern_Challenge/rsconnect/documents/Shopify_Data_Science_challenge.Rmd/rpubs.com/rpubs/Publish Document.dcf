@@ -1,0 +1,10 @@
+name: Publish Document
+title:
+username:
+account: rpubs
+server: rpubs.com
+hostUrl: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/766957/d1805a225b374fb89d859409999a30f5
+bundleId: https://api.rpubs.com/api/v1/document/766957/d1805a225b374fb89d859409999a30f5
+url: http://rpubs.com/kolaoba/766957/edit
+when: 1620505779.0567
