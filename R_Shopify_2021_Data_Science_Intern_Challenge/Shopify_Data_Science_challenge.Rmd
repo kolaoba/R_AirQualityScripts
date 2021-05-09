@@ -41,7 +41,7 @@ data <- data.csv %>%
   mutate_at(vars(matches("id"),"payment_method"), factor)  # factorizes the id columns and "payment_method" column
 ```
 
-Quick look at the dataset by summarizing our data
+Quick look at the dataset by summarizing our data (I made the id columns and payement method column factors)
 
 ```{r}
 data %>% 
@@ -58,9 +58,9 @@ It appears the naive calculation is obtained by averaging all of the order_amoun
 
 Question 1a: Think about what could be going wrong with our calculation. Think about a better way to evaluate this data.
 
-Response: This calculation tries to evaluate the AOV across all 100 shops over the 30 day window. This results in the high $3145.13 value. 
+Response: This calculation tries to evaluate the AOV across all 100 shops over the 30 day window by averageing the order_amount column. This results in the high $3145.13 value. 
 
-According to [this definition](https://www.shopify.com.ng/blog/average-order-value#averageorder), to obtain the AOV, we divide the total revenue by the total number of orders. Doing this for each shop and getting the average, we have 
+According to [this shopify blog](https://www.shopify.com.ng/blog/average-order-value#averageorder), to obtain the AOV, we divide the total revenue by the total number of orders. Doing this for each shop and getting the average, we have 
 
 ```{r}
 aov_v1 <- data %>% 
@@ -115,7 +115,7 @@ ggplot(aov_per_shop) +
   theme_bw()
 ```
 
-The outlier at $25,725 makes this mostly unreadable despite my logarithmic efforts so let's just look at the numbers!
+The outlier at $25,725 makes this mostly unreadable despite my logarithmic efforts so let's just look at the numbers`r emo::ji("smile")`!
 
 ```{r}
 summary(aov_per_shop$aov_per_shop)
@@ -145,6 +145,8 @@ aov_v2 <-  data %>%
 aov_v2
 ```
 
+This gives an average order value of $152.26.
+
 As it's against data best practices to delete data, we'll explore other methods.
 
 ### Median Order Value
@@ -163,6 +165,8 @@ aov_v3 <-  data %>%
   summarise(aov_v3 = median(aov_per_shop))
 aov_v3
 ```
+
+The median order value obtained is $153.
 
 ### Modal Order Value
 
@@ -188,6 +192,7 @@ aov_all
 
 ```
 
+This yields a modal order value of $153.
 
 
 Question 1b: What metric would you report for this dataset?
@@ -198,7 +203,13 @@ Question 1c: What is its value?
 
 Its value is **$153**.
 
-## Problem Statement:
+### Side Note:
+
+I noticed (while playing around some more because why not!) that the orders made by user_id 607 had the exact same transaction and timestamp. I suspect this was an error but would need to confirm with the originator of the data (le DB folks) before I can take any decisions concerning it. As the sneaker price obtained from these transactions is $352, a little pricey but still reasonable, I left the data in my analysis.
+
+Alrighty then, see you at the Life Story Interview! `r emo::ji("wink")`
+
+## Problem Statement 2:
 
 Question 2 : For this question you’ll need to use SQL. [Follow this link](https://www.w3schools.com/SQL/TRYSQL.ASP?FILENAME=TRYSQL_SELECT_ALL) to access the data set required for the challenge. Please use queries to answer the following questions. Paste your queries along with your final numerical answers below.
 
